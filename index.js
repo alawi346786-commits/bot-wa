@@ -1,3 +1,5 @@
+// MEMANGGIL SEMUA MODUL YANG DIBUTUHKAN
+const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js'); // INI WAJIB ADA
 const qrcodeTerminal = require('qrcode-terminal'); // Untuk login bot
 const QRCode = require('qrcode'); // Untuk fitur pembuat QR Code
 const { createCanvas } = require('canvas');
@@ -5,11 +7,21 @@ const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
 
-// Inisialisasi WhatsApp client
+// ==========================================
+// INISIALISASI WHATSAPP CLIENT (STANDAR RAILWAY)
+// ==========================================
 const client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: {
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
+        args: [
+            '--no-sandbox', 
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-accelerated-2d-canvas',
+            '--no-first-run',
+            '--no-zygote',
+            '--disable-gpu'
+        ]
     }
 });
 
