@@ -26,32 +26,30 @@ const client = new Client({
 });
 
 client.on('qr', async (qr) => {
-    // Nomor WhatsApp bot kamu (sudah disesuaikan formatnya tanpa + atau spasi)
-    const nomorBot = '6285786580582'; 
+    const nomorBot = '6285786580582';
     
+    console.log('\n⏳ Menyiapkan sesi untuk Pairing Code...');
+    
+    // Beri jeda 3 detik agar browser siap sepenuhnya
+    await new Promise(resolve => setTimeout(resolve, 3000));
+
     try {
-        console.log('\n⏳ Sedang meminta kode pairing untuk nomor:', nomorBot);
-        // Meminta pairing code ke server WhatsApp
+        console.log('🔄 Meminta Pairing Code dari server WhatsApp untuk:', nomorBot);
+        
+        // Memaksa permintaan pairing code murni
         const code = await client.requestPairingCode(nomorBot);
         
         console.log('\n======================================================');
-        console.log(`🔑 KODE PAIRING BOT KAMU: ${code}`);
-        console.log('Cek notifikasi WA di HP, atau buka: Tautkan Perangkat -> Tautkan dengan Nomor Telepon');
-        console.log('Masukkan kode di atas untuk login!');
+        console.log(`🔑 KODE PAIRING ANDA: ${code}`);
+        console.log('Buka WhatsApp di HP -> Perangkat Tertaut -> Tautkan Perangkat -> Tautkan dengan Nomor Telepon');
+        console.log('Masukkan kode di atas!');
         console.log('======================================================\n');
         
     } catch (error) {
-        console.error('\n❌ Gagal memuat Pairing Code. Mengalihkan ke mode QR Link...');
-        
-        // FITUR CADANGAN: Jika pairing code gagal, bot akan membuat link QR Code
-        const qrLink = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(qr)}`;
-        console.log('\n======================================================');
-        console.log('⚠️ BUKA LINK DI BAWAH INI DI BROWSER UNTUK MENAMPILKAN QR CODE');
-        console.log('=>', qrLink);
-        console.log('======================================================\n');
+        console.error('❌ Terjadi kendala saat meminta pairing code:', error.message);
+        console.log('💡 Tips: Pastikan nomor bot aktif di HP dan tidak sedang dalam status diblokir sementara.');
     }
 });
-
 client.on('ready', () => {
     console.log('✅ Bot sudah siap dan online!');
 });
