@@ -25,29 +25,38 @@ const client = new Client({
     }
 });
 
+// Tambahkan baris ini agar bot tidak spam request berkali-kali
+let pairingCodeRequested = false;
+
 client.on('qr', async (qr) => {
+    // Jika bot sudah pernah meminta kode, abaikan agar tidak spam
+    if (pairingCodeRequested) {
+        return;
+    }
+    pairingCodeRequested = true; // Kunci sistem agar hanya jalan 1 kali
+    
     const nomorBot = '6285786580582';
     
-    console.log('\n⏳ Menyiapkan sesi untuk Pairing Code...');
+    console.log('\n⏳ WhatsApp Web sedang dimuat, mohon tunggu sekitar 5-10 detik...');
     
-    // Beri jeda 3 detik agar browser siap sepenuhnya
-    await new Promise(resolve => setTimeout(resolve, 3000));
-
     try {
-        console.log('🔄 Meminta Pairing Code dari server WhatsApp untuk:', nomorBot);
+        // Beri jeda 5 detik agar halaman WhatsApp benar-benar selesai loading
+        await new Promise(resolve => setTimeout(resolve, 5000));
         
-        // Memaksa permintaan pairing code murni
+        console.log('🔄 Menghubungi server WhatsApp untuk nomor:', nomorBot);
+        
+        // Meminta kode tautan
         const code = await client.requestPairingCode(nomorBot);
         
         console.log('\n======================================================');
         console.log(`🔑 KODE PAIRING ANDA: ${code}`);
-        console.log('Buka WhatsApp di HP -> Perangkat Tertaut -> Tautkan Perangkat -> Tautkan dengan Nomor Telepon');
-        console.log('Masukkan kode di atas!');
+        console.log('Buka WA di HP -> Perangkat Tertaut -> Tautkan dengan Nomor Telepon');
         console.log('======================================================\n');
         
     } catch (error) {
-        console.error('❌ Terjadi kendala saat meminta pairing code:', error.message);
-        console.log('💡 Tips: Pastikan nomor bot aktif di HP dan tidak sedang dalam status diblokir sementara.');
+        console.error('\n❌ Gagal membuat Pairing Code. Error:', error.message);
+        // Buka kunci lagi jika gagal, agar sistem mencoba ulang
+        pairingCodeRequested = false; 
     }
 });
 client.on('ready', () => {
