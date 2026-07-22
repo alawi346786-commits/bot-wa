@@ -25,9 +25,31 @@ const client = new Client({
     }
 });
 
-client.on('qr', (qr) => {
-    qrcodeTerminal.generate(qr, { small: true });
-    console.log('\n=> Silakan SCAN QR Code di atas menggunakan WA kamu!\n');
+client.on('qr', async (qr) => {
+    // Nomor WhatsApp bot kamu (sudah disesuaikan formatnya tanpa + atau spasi)
+    const nomorBot = '6285786580582'; 
+    
+    try {
+        console.log('\n⏳ Sedang meminta kode pairing untuk nomor:', nomorBot);
+        // Meminta pairing code ke server WhatsApp
+        const code = await client.requestPairingCode(nomorBot);
+        
+        console.log('\n======================================================');
+        console.log(`🔑 KODE PAIRING BOT KAMU: ${code}`);
+        console.log('Cek notifikasi WA di HP, atau buka: Tautkan Perangkat -> Tautkan dengan Nomor Telepon');
+        console.log('Masukkan kode di atas untuk login!');
+        console.log('======================================================\n');
+        
+    } catch (error) {
+        console.error('\n❌ Gagal memuat Pairing Code. Mengalihkan ke mode QR Link...');
+        
+        // FITUR CADANGAN: Jika pairing code gagal, bot akan membuat link QR Code
+        const qrLink = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(qr)}`;
+        console.log('\n======================================================');
+        console.log('⚠️ BUKA LINK DI BAWAH INI DI BROWSER UNTUK MENAMPILKAN QR CODE');
+        console.log('=>', qrLink);
+        console.log('======================================================\n');
+    }
 });
 
 client.on('ready', () => {
