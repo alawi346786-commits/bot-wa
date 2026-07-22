@@ -8,6 +8,67 @@ const fs = require('fs');
 const path = require('path');
 
 // ==========================================
+// SISTEM DATABASE OWNER & PREMIUM (PERMANEN)
+// ==========================================
+const dbPath = path.join(__dirname, 'database.json');
+
+// Default Database
+let db = {
+    owners: ['6285708793508', '6285786580582'], // Owner utama + nomormu
+    premium: {} // Format: { "nomor": "YYYY-MM-DDTHH:mm:ss.sssZ" }
+};
+
+// Fungsi Load Database
+function loadDatabase() {
+    try {
+        if (fs.existsSync(dbPath)) {
+            const data = fs.readFileSync(dbPath, 'utf8');
+            db = JSON.parse(data);
+            if (!db.owners) db.owners = ['6285708793508'];
+            if (!db.premium) db.premium = {};
+        } else {
+            saveDatabase();
+        }
+    } catch (e) {
+        console.error('Gagal memuat database:', e);
+    }
+}
+
+// Fungsi Save Database
+function saveDatabase() {
+    try {
+        fs.writeFileSync(dbPath, JSON.stringify(db, null, 2));
+    } catch (e) {
+        console.error('Gagal menyimpan database:', e);
+    }
+}
+
+loadDatabase();
+
+// Fungsi Pengecekan Owner & Premium
+function isOwner(senderNumber) {
+    const cleanNum = senderNumber.replace(/[^0-9]/g, '');
+    return db.owners.includes(cleanNum);
+}
+
+function isPremium(senderNumber) {
+    const cleanNum = senderNumber.replace(/[^0-9]/g, '');
+    if (db.owners.includes(cleanNum)) return true; // Owner otomatis premium
+    
+    if (db.premium[cleanNum]) {
+        const expiryDate = new Date(db.premium[cleanNum]);
+        const now = new Date();
+        if (now < expiryDate) {
+            return true; // Masih aktif
+        } else {
+            delete db.premium[cleanNum]; // Expired, hapus otomatis
+            saveDatabase();
+        }
+    }
+    return false;
+}
+
+// ==========================================
 // INISIALISASI WHATSAPP CLIENT (STANDAR RAILWAY)
 // ==========================================
 const client = new Client({
@@ -69,6 +130,87 @@ client.on('message', async msg => {
     const textMessage = msg.body || ''; 
     const command = textMessage.split(' ')[0].toLowerCase();
     const args = textMessage.slice(command.length).trim();
+
+// ==========================================
+    // SISTEM COMMAND OWNER & PREMIUM
+    // ==========================================
+    const sender = msg.from.replace('@c.us', '');
+
+    // 1. /addowner <nomor>
+    if (command === '/addowner') {
+        if (!isOwner(sender)) return msg.reply('❌ Perintah ini khusus untuk Owner!');
+        if (!args) return msg.reply('❌ Masukkan nomornya!\nContoh: */addowner 6281234567890*');
+        const target = args.split(' ')[0].replace(/[^0-9]/g, '');
+        if (db.owners.includes(target)) return msg.reply('⚠️ Nomor tersebut sudah menjadi Owner.');
+        db.owners.push(target);
+        saveDatabase();
+        return msg.reply(`✅ Berhasil menambahkan ${target} sebagai Owner.`);
+    }
+
+    // 2. /delowner <nomor>
+    else if (command === '/delowner') {
+        if (!isOwner(sender)) return msg.reply('❌ Perintah ini khusus untuk Owner!');
+        if (!args) return msg.reply('❌ Masukkan nomornya!');
+        const target = args.split(' ')[0].replace(/[^0-9]/g, '');
+        if (target === '6285708793508') return msg.reply('❌ Owner utama tidak dapat dihapus!');
+        const index = db.owners.indexOf(target);
+        if (index === -1) return msg.reply('❌ Nomor tersebut bukan Owner.');
+        db.owners.splice(index, 1);
+        saveDatabase();
+        return msg.reply(`✅ Berhasil menghapus ${target} dari daftar Owner.`);
+    }
+
+    // 3. /listowner
+    else if (command === '/listowner') {
+        let text = '👑 *DAFTAR OWNER BOT*:\n\n';
+        db.owners.forEach((o, i) => { text += `${i + 1}. wa.me/${o}\n`; });
+        return msg.reply(text);
+    }
+
+    // 4. /addprem <nomor> <hari>
+    else if (command === '/addprem') {
+        if (!isOwner(sender)) return msg.reply('❌ Perintah ini khusus untuk Owner!');
+        const parts = args.split(' ');
+        if (parts.length < 2) return msg.reply('❌ Format salah!\nContoh: */addprem 6281234567890 30*');
+        const target = parts[0].replace(/[^0-9]/g, '');
+        const days = parseInt(parts[1]);
+        if (isNaN(days) || days <= 0) return msg.reply('❌ Jumlah hari harus angka valid!');
+
+        const expiry = new Date();
+        expiry.setDate(expiry.getDate() + days);
+        db.premium[target] = expiry.toISOString();
+        saveDatabase();
+        return msg.reply(`✅ Berhasil memberikan akses Premium ke ${target} selama ${days} hari!\nBerakhir pada: ${expiry.toLocaleDateString()}`);
+    }
+
+    // 5. /delprem <nomor>
+    else if (command === '/delprem') {
+        if (!isOwner(sender)) return msg.reply('❌ Perintah ini khusus untuk Owner!');
+        if (!args) return msg.reply('❌ Masukkan nomornya!');
+        const target = args.split(' ')[0].replace(/[^0-9]/g, '');
+        if (!db.premium[target]) return msg.reply('❌ Nomor tersebut tidak terdaftar sebagai Premium.');
+        delete db.premium[target];
+        saveDatabase();
+        return msg.reply(`✅ Berhasil mencabut status Premium dari ${target}.`);
+    }
+
+    // 6. /listprem
+    else if (command === '/listprem') {
+        const now = new Date();
+        let text = '💎 *DAFTAR USER PREMIUM*:\n\n';
+        let count = 0;
+        for (const [num, dateStr] of Object.entries(db.premium)) {
+            const exp = new Date(dateStr);
+            if (now < exp) {
+                const diffTime = Math.abs(exp - now);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                count++;
+                text += `${count}. wa.me/${num}\n   ⏳ Sisa: ${diffDays} hari lagi\n\n`;
+            }
+        }
+        if (count === 0) return msg.reply('Belum ada user premium yang aktif.');
+        return msg.reply(text);
+    }
 
     // ==========================================
     // 1. FITUR MENU (TAMPILAN BARU LEBIH SIMPEL)
