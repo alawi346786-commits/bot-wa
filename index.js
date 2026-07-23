@@ -148,7 +148,7 @@ const sender = senderId.split('@')[0].split(':')[0];
 
     // 1. /addowner <nomor>
     if (command === '/addowner') {
-        if (!isOwner(sender)) return msg.reply('❌ Perintah ini khusus untuk Owner!');
+       if (!isOwner(sender)) return msg.reply('❌ AKSES DITOLAK!\nBot membaca nomor kamu sebagai: *' + sender + '*\n\nJika pesan ini muncul, berarti kode baru SUDAH MASUK.');
         if (!args) return msg.reply('❌ Masukkan nomornya!\nContoh: */addowner 6281234567890*');
         const target = args.split(' ')[0].replace(/[^0-9]/g, '');
         if (db.owners.includes(target)) return msg.reply('⚠️ Nomor tersebut sudah menjadi Owner.');
