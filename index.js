@@ -148,7 +148,19 @@ const sender = senderId.split('@')[0].split(':')[0];
 
     // 1. /addowner <nomor>
     if (command === '/addowner') {
-       if (!isOwner(sender)) return msg.reply('❌ AKSES DITOLAK!\nBot membaca nomor kamu sebagai: *' + sender + '*\n\nJika pesan ini muncul, berarti kode baru SUDAH MASUK.');
+       if (!isOwner(sender)) {
+    return msg.reply(
+`DEBUG
+
+sender = ${sender}
+
+isOwner = ${isOwner(sender)}
+
+msg.from = ${msg.from}
+
+msg.author = ${msg.author || 'tidak ada'}`
+    );
+}
         if (!args) return msg.reply('❌ Masukkan nomornya!\nContoh: */addowner 6281234567890*');
         const target = args.split(' ')[0].replace(/[^0-9]/g, '');
         if (db.owners.includes(target)) return msg.reply('⚠️ Nomor tersebut sudah menjadi Owner.');
@@ -179,7 +191,19 @@ const sender = senderId.split('@')[0].split(':')[0];
 
     // 4. /addprem <nomor> <hari>
     else if (command === '/addprem') {
-        if (!isOwner(sender)) return msg.reply('❌ Perintah ini khusus untuk Owner!');
+        if (!isOwner(sender)) {
+    return msg.reply(
+`DEBUG
+
+sender = ${sender}
+
+isOwner = ${isOwner(sender)}
+
+msg.from = ${msg.from}
+
+msg.author = ${msg.author || 'tidak ada'}`
+    );
+}
         const parts = args.split(' ');
         if (parts.length < 2) return msg.reply('❌ Format salah!\nContoh: */addprem 6281234567890 30*');
         const target = parts[0].replace(/[^0-9]/g, '');
