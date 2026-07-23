@@ -47,13 +47,15 @@ loadDatabase();
 
 // Fungsi Pengecekan Owner & Premium
 function isOwner(senderNumber) {
-    const cleanNum = senderNumber.replace(/[^0-9]/g, '');
+    const cleanNum = senderNumber.split('@')[0].split(':')[0].replace(/[^0-9]/g, '');
     return db.owners.includes(cleanNum);
 }
 
 function isPremium(senderNumber) {
-    const cleanNum = senderNumber.replace(/[^0-9]/g, '');
+    const cleanNum = senderNumber.split('@')[0].split(':')[0].replace(/[^0-9]/g, '');
     if (db.owners.includes(cleanNum)) return true; // Owner otomatis premium
+
+    // ... (kode bawahnya biarkan tetap sama) ...
     
     if (db.premium[cleanNum]) {
         const expiryDate = new Date(db.premium[cleanNum]);
@@ -237,7 +239,8 @@ const sender = senderId.split('@')[0].split(':')[0];
 
 *⚙️ LAINNYA*
 */kirim [nomor] [pesan]* ➭ Chat ke nomor lain
-*/ping* ➭ Cek status bot`;
+*/ping* ➭ Cek status bot
+*Hubungi Owner 6285708793508`;
         
         msg.reply(menuText);
     }
