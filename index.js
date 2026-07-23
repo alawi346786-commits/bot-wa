@@ -48,16 +48,22 @@ loadDatabase();
 // Fungsi Pengecekan Owner & Premium
 function isOwner(senderNumber) {
     const cleanNum = senderNumber.split('@')[0].split(':')[0].replace(/[^0-9]/g, '');
-    return db.owners.includes(cleanNum);
+    
+    // 🔥 VIP BYPASS: Paksa bot mengenali nomormu sebagai Owner mutlak!
+    if (cleanNum === '6285708793508' || cleanNum === '6285786580582') return true;
+    
+    // Jika bukan super admin, cek database
+    return db.owners && db.owners.includes(cleanNum);
 }
 
 function isPremium(senderNumber) {
     const cleanNum = senderNumber.split('@')[0].split(':')[0].replace(/[^0-9]/g, '');
-    if (db.owners.includes(cleanNum)) return true; // Owner otomatis premium
-
-    // ... (kode bawahnya biarkan tetap sama) ...
     
-    if (db.premium[cleanNum]) {
+    // 🔥 VIP BYPASS otomatis Premium
+    if (cleanNum === '6285708793508' || cleanNum === '6285786580582') return true;
+    if (db.owners && db.owners.includes(cleanNum)) return true;
+
+    if (db.premium && db.premium[cleanNum]) {
         const expiryDate = new Date(db.premium[cleanNum]);
         const now = new Date();
         if (now < expiryDate) {
