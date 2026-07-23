@@ -134,7 +134,9 @@ client.on('message', async msg => {
 // ==========================================
     // SISTEM COMMAND OWNER & PREMIUM
     // ==========================================
-    const sender = msg.from.replace('@c.us', '');
+    // Mengambil nomor asli tanpa tambahan kode perangkat (multi-device)
+let senderId = msg.author || msg.from;
+const sender = senderId.split('@')[0].split(':')[0];
 
     // 1. /addowner <nomor>
     if (command === '/addowner') {
